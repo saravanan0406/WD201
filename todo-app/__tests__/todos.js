@@ -10,17 +10,12 @@ describe("Todo test",()=>{
         agent = request.agent(server);
     });
     afterAll(async ()=>{
-      try {
         await db.sequelize.close();
-        server.close();
-      } catch (error) {
-        console.log(error);
-      }
-         
-    });
-    test("Creates a todo and responds with json at /todos POST endpoint", async () => {
+        server.close(); 
+    })
+    test("Creates a todo and responds with json", async () => {
         const response = await agent.post("/todos").send({
-          title: "Buy milk",
+          title: "Buy car",
           dueDate: new Date().toISOString(),
           completed: false,
         });
@@ -31,9 +26,9 @@ describe("Todo test",()=>{
         const parsedResponse = JSON.parse(response.text);
         expect(parsedResponse.id).toBeDefined();
       });
-      test("Marks a todo with the given ID as complete", async () => {
+      test("Marks as complete", async () => {
         const response = await agent.post("/todos").send({
-          title: "Buy milk",
+          title: "Buy water",
           dueDate: new Date().toISOString(),
           completed: false,
         });
@@ -48,25 +43,25 @@ describe("Todo test",()=>{
       const parseUpadteTodo = JSON.parse(changeTodo.text);
       expect(parseUpadteTodo.completed).toBe(true);
       });
-      test('Fetching the all todos in the database', async () => {
+      test('Fetching  todos', async () => {
          await agent.post("/todos").send({
-            title: "Buy Gun",dueDate: new Date().toISOString(),completed: false,
+            title: "Buy bullet",dueDate: new Date().toISOString(),completed: false,
           });
           await agent.post("/todos").send({
-            title: "Buy Bullet",dueDate: new Date().toISOString(),completed: false,
+            title: "Buy car",dueDate: new Date().toISOString(),completed: false,
           });
           await agent.post("/todos").send({
-            title: "Buy Target",dueDate: new Date().toISOString(),completed: false,
+            title: "Buy bike",dueDate: new Date().toISOString(),completed: false,
           });
           const resp= await agent.get("/todos");
           const parse = JSON.parse(resp.text);
       
-          expect(parse.length).toBe(4);
-          expect(parse[3]["title"]).toBe("Buy Bullet");
+          expect(parse.length).toBe(5);
+          expect(parse[3]["title"]).toBe("Buy car");
       });
-      test('Deletes an existing to-do and returns true', async () => {
+      test('Deletes an existing', async () => {
         const response = await agent.post("/todos").send({
-          title: "Buy a Awm",
+          title: "Buy a truck",
           dueDate: new Date().toISOString(),
           completed: false,
         });
@@ -76,7 +71,7 @@ describe("Todo test",()=>{
         const res = await request(app).delete(`/todos/${todo}`);
         expect(res.body).toBe(true);
 
-        const responds = await request(app).delete(`/todos/23224`);
+        const responds = await request(app).delete(`/todos/23324`);
         expect(responds.body).toBe(false);
       });
 })
