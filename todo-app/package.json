@@ -10,7 +10,7 @@
     "test": "NODE_ENV=test jest --detectOpenHandles",
     "prepare": "cd .. && husky install todo-cli/.husky"
   },
-  "author": "M.Saravanan <20110086@hicet.ac.in>",
+  "author": "Sathish M <20110089@hicet.ac.in>",
   "license": "ISC",
   "devDependencies": {
     "express": "^4.18.2",
