@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 app.set("view engine","ejs");
 
 app.get("/",async (request,response)=>{
-  const alltodos = await Todo.getTodos();
+  const alltodos = await Todo.gettodos();
   if(request.accepts("html")){
     response.render('index',{
       alltodos
@@ -37,7 +37,7 @@ app.use(express.static(path.join(__dirname,'public')));
 app.post("/todos", async(request,response)=>{
     console.log("creating a todo",request.body)
     try {
-        const todo = await Todo.addTodo({title: request.body.title,dueDate: request.body.dueDate, completed: false})
+        const todo = await Todo.addtodo({title: request.body.title,dueDate: request.body.dueDate, completed: false})
         return response.json(todo)
     } catch (error) {
         console.log("error")

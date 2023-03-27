@@ -4,13 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon js,ejs",
+    "start": "nodemon -e js,ejs",
     "start:prod": "node index.js",
     "pretest": "NODE_ENV=test npx sequelize-cli db:drop && NODE_ENV=test npx sequelize-cli db:create",
     "test": "NODE_ENV=test jest --detectOpenHandles",
     "prepare": "cd .. && husky install todo-cli/.husky"
   },
-  "author": "Sathish M <20110089@hicet.ac.in>",
+  "author": "M.Saravanan <20110086@hicet.ac.in>",
   "license": "ISC",
   "devDependencies": {
     "express": "^4.18.2",

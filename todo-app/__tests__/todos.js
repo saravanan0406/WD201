@@ -13,9 +13,9 @@ describe("Todo test",()=>{
         await db.sequelize.close();
         server.close(); 
     })
-    test("Creates a todo and responds with json", async () => {
+    test("Creates a todo", async () => {
         const response = await agent.post("/todos").send({
-          title: "Buy car",
+          title: "Buy bus",
           dueDate: new Date().toISOString(),
           completed: false,
         });
@@ -26,7 +26,7 @@ describe("Todo test",()=>{
         const parsedResponse = JSON.parse(response.text);
         expect(parsedResponse.id).toBeDefined();
       });
-      test("Marks as complete", async () => {
+      test("Marks a todo with ID", async () => {
         const response = await agent.post("/todos").send({
           title: "Buy water",
           dueDate: new Date().toISOString(),
@@ -43,25 +43,25 @@ describe("Todo test",()=>{
       const parseUpadteTodo = JSON.parse(changeTodo.text);
       expect(parseUpadteTodo.completed).toBe(true);
       });
-      test('Fetching  todos', async () => {
+      test('Fetching todos', async () => {
          await agent.post("/todos").send({
+            title: "Buy train",dueDate: new Date().toISOString(),completed: false,
+          });
+          await agent.post("/todos").send({
             title: "Buy bullet",dueDate: new Date().toISOString(),completed: false,
           });
           await agent.post("/todos").send({
-            title: "Buy car",dueDate: new Date().toISOString(),completed: false,
-          });
-          await agent.post("/todos").send({
-            title: "Buy bike",dueDate: new Date().toISOString(),completed: false,
+            title: "Buy flight",dueDate: new Date().toISOString(),completed: false,
           });
           const resp= await agent.get("/todos");
           const parse = JSON.parse(resp.text);
       
           expect(parse.length).toBe(5);
-          expect(parse[3]["title"]).toBe("Buy car");
+          expect(parse[3]["title"]).toBe("Buy bullet");
       });
-      test('Deletes an existing', async () => {
+      test('Deletes an existing to-do and returns true', async () => {
         const response = await agent.post("/todos").send({
-          title: "Buy a truck",
+          title: "Buy a bike",
           dueDate: new Date().toISOString(),
           completed: false,
         });

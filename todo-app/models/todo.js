@@ -9,13 +9,13 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    static asso(models) {
+    static associate(models) {
       // define association here
     }
-    static Todosget() {
+    static gettodos() {
       return this.findAll({ order: [["id", "ASC"]] });
     }
-    static Todoadd({title,dueDate}){
+    static addtodo({title,dueDate}){
       return this.create({title: title,dueDate: dueDate,completed: false})
     }
     markAsCompleted() {
