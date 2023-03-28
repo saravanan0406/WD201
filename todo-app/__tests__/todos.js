@@ -13,9 +13,9 @@ describe("Todo test",()=>{
         await db.sequelize.close();
         server.close(); 
     })
-    test("Creates a todo", async () => {
+    test("Creates a todo and response", async () => {
         const response = await agent.post("/todos").send({
-          title: "Buy bus",
+          title: "Buy bike",
           dueDate: new Date().toISOString(),
           completed: false,
         });
@@ -26,7 +26,7 @@ describe("Todo test",()=>{
         const parsedResponse = JSON.parse(response.text);
         expect(parsedResponse.id).toBeDefined();
       });
-      test("Marks a todo with ID", async () => {
+      test("Marks as complete", async () => {
         const response = await agent.post("/todos").send({
           title: "Buy water",
           dueDate: new Date().toISOString(),
@@ -43,9 +43,9 @@ describe("Todo test",()=>{
       const parseUpadteTodo = JSON.parse(changeTodo.text);
       expect(parseUpadteTodo.completed).toBe(true);
       });
-      test('Fetching todos', async () => {
+      test('Fetching the all todos', async () => {
          await agent.post("/todos").send({
-            title: "Buy train",dueDate: new Date().toISOString(),completed: false,
+            title: "Buy ship",dueDate: new Date().toISOString(),completed: false,
           });
           await agent.post("/todos").send({
             title: "Buy bullet",dueDate: new Date().toISOString(),completed: false,
@@ -59,7 +59,7 @@ describe("Todo test",()=>{
           expect(parse.length).toBe(5);
           expect(parse[3]["title"]).toBe("Buy bullet");
       });
-      test('Deletes an existing to-do and returns true', async () => {
+      test('Deletes an existing to-do', async () => {
         const response = await agent.post("/todos").send({
           title: "Buy a bike",
           dueDate: new Date().toISOString(),
