@@ -6,3 +6,6 @@ body{
 body h3{
     color: black;
 }
+.todo_item:hover .trash-icon{
+    display: block;
+}
