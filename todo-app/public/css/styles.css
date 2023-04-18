@@ -1,11 +1,11 @@
-body{
-    color:red;
-    font-family: sans-serif;
+body {
+  background-color: rgb(220, 220, 220);
 }
 
-body h3{
-    color: black;
+.todoList:hover .trash-icon {
+  display: block;
 }
-.todo_item:hover .trash-icon{
-    display: block;
+
+body h3 {
+  color: rgb(30, 24, 24);
 }
