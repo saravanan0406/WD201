@@ -93,7 +93,8 @@ app.get("/", async (request, response) => {
 
 
 app.get("/todos",
-connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
+connectEnsureLogin.ensureLoggedIn(),
+ async (request, response) => {
   const loggedInUser = request.user.id;
   const overdueTodo = await Todo.overdueTodoItems(loggedInUser);
   const duetodayTodo = await Todo.duetodayTodoItems(loggedInUser);
@@ -118,7 +119,7 @@ connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
 app.get("/signup", (request, response) => {
   response.render("signup", {
     title: "Signup",
-    "csrfToken": request.csrfToken(), //prettier-ignore
+    "csrfToken": request.csrfToken(),
   });
 });
 
@@ -135,7 +136,7 @@ app.get("/signout", (request, response) => {
 app.get("/login", (request, response) => {
   response.render("login", {
     title: "Login",
-    "csrfToken": request.csrfToken(), //prettier-ignore
+    "csrfToken": request.csrfToken(),
   });
 });
 
@@ -203,8 +204,8 @@ console.log(request.user);
   }
 });
 
-
 app.get("/todos", async function (_request, response) {
+  console.log("Processing  all Todos ...");
   try {
     const todo = await Todo.getTodo();
     return response.json(todo);
