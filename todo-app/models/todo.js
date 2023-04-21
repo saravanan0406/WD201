@@ -2,13 +2,11 @@
 const { Model, Op } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Todo extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `Models/index` file will call this method automatically.
-     */
+    
     static associate(models) {
-      // define association here
+      Todo.belongsTo(models.User, {
+        foreignKey: "userId",
+      });
     }
 
     static addTodo({ title, dueDate }) {
@@ -39,15 +37,6 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
-    static markAsCompletedItems() {
-      return this.findAll({
-        where: {
-          completed: true,
-        },
-        order: [["id", "ASC"]],
-      });
-    }
-
     static duelaterTodoItems() {
       return this.findAll({
         where: {
@@ -71,6 +60,15 @@ module.exports = (sequelize, DataTypes) => {
         where: {
           id,
         },
+      });
+    }
+
+    static markAsCompletedItems() {
+      return this.findAll({
+        where: {
+          completed: true,
+        },
+        order: [["id", "ASC"]],
       });
     }
 

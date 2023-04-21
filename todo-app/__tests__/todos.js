@@ -25,7 +25,23 @@ describe("Todo App", function () {
     }
   });
 
+  const login = async (agent, username, password) => {
+    let res = await agent.get("/login");
+    let csrfToken = extractCsrfToken(res);
+    res = await agent.post("/session").send({
+      email: username,
+      password: password,
+      _csrf: csrfToken,
+    });
+  };
+
+
+
+
   test("Creates a new todo", async () => {
+    const agent = request.agent(server);
+    await login(agent, "user.a@test.com", "12345678");
+
     let res = await agent.get("/");
     let csrfToken = extractCsrfToken(res);
     const response = await agent.post("/todos").send({
@@ -38,6 +54,9 @@ describe("Todo App", function () {
   });
 
   test("Marks a todo as complete", async () => {
+    const agent = request.agent(server);
+    await login(agent, "user.a@test.com", "12345678"); 
+      
     let res = await agent.get("/");
     let csrfToken = extractCsrfToken(res);
     await agent.post("/todos").send({
@@ -47,8 +66,31 @@ describe("Todo App", function () {
       "_csrf": csrfToken, // prettier-ignore
     });
 
+
+    test("Sign up", async () => {
+      let res = await agent.get("/signup");
+      const csrfToken = extractCsrfToken(res);
+      res = await agent.post("/users").send({
+        firstName: "Test",
+        lastName: "User A",
+        email: "user.a@test.com",
+        password: "12345678",
+        _csrf: csrfToken,
+      });
+      expect(res.statusCode).toBe(302);
+    });
+  
+    test("Sign out", async () => {
+      let res = await agent.get("/todos");
+      expect(res.statusCode).toBe(200);
+      res = await agent.get("/signout");
+      expect(res.statusCode).toBe(302);
+      res = await agent.get("/todos");
+      expect(res.statusCode).toBe(302);
+    });
+
     const groupedTodosResponse = await agent
-      .get("/")
+      .get("/todos")
       .set("Accept", "application/json");
     const parsedGroupedResponse = JSON.parse(groupedTodosResponse.text);
     const dueTodayCount = parsedGroupedResponse.duetodayTodo.length;
@@ -69,6 +111,9 @@ describe("Todo App", function () {
   });
 
   test("Deletes a todo", async () => {
+    const agent = request.agent(server);
+    await login(agent, "user.a@test.com", "12345678");
+    
     let res = await agent.get("/");
     let csrfToken = extractCsrfToken(res);
     await agent.post("/todos").send({
@@ -79,7 +124,7 @@ describe("Todo App", function () {
     });
 
     const groupedTodosResponse = await agent
-      .get("/")
+      .get("/todos")
       .set("Accept", "application/json");
 
     const parsedResponse = JSON.parse(groupedTodosResponse.text);
