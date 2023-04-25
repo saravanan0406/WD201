@@ -3,7 +3,6 @@ const app = express();
 const { Todo, User } = require("./models");
 const bodyParser = require("body-parser");
 const path = require("path");
-const { Model, Op } = require("sequelize");
 const passport = require("passport");
 const connectEnsureLogin = require("connect-ensure-login");
 const session = require("express-session");
@@ -12,10 +11,8 @@ var csurf = require("tiny-csrf");
 var cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
 const flash = require("connect-flash");
-const user = require("./models/user");
-
 const saltRounds = 10;
-
+app.set("view engine", "ejs");
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser("shh! some secret string"));
@@ -29,14 +26,12 @@ app.use(
     },
   })
 );
-
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(function (request, response, next) {
   response.locals.messages = request.flash();
   next();
 });
-
 
 passport.use(
   new LocalStrategy(
@@ -60,7 +55,7 @@ passport.use(
         })
         .catch((error) => {
           return done(null, false, {
-            message: "Account doesn't exist",
+            message: "Account doesn't exist for this mail id",
           });
         });
     }
@@ -68,7 +63,7 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  console.log(" user session Serializing", user.id);
+  console.log("Serializing user in session", user.id);
   done(null, user.id);
 });
 
@@ -82,47 +77,50 @@ passport.deserializeUser((id, done) => {
     });
 });
 
-app.set("view engine", "ejs");
-
 app.get("/", async (request, response) => {
   response.render("index", {
-    title: "Saravanan Todo-Manager",
-    "csrfToken": request.csrfToken(),
+    title: "Todo-Manager",
+    "csrfToken": request.csrfToken(), //prettier-ignore
   });
 });
 
-
-app.get("/todos",
-connectEnsureLogin.ensureLoggedIn(),
- async (request, response) => {
-  const loggedInUser = request.user.id;
-  const overdueTodo = await Todo.overdueTodoItems(loggedInUser);
-  const duetodayTodo = await Todo.duetodayTodoItems(loggedInUser);
-  const duelaterTodo = await Todo.duelaterTodoItems(loggedInUser);
-  const completedTodo = await Todo.markAsCompletedItems(loggedInUser);
-
-  if (request.accepts("html")) {
-    response.render("index", {
-      title: "Saravanan Todo app",
-      overdueTodo,
-      duelaterTodo,
-      duetodayTodo,
-      completedTodo,
-      csrfToken: request.csrfToken(),
-    });
-  } else {
-    response.json({ overdueTodo, duetodayTodo, duelaterTodo });
+app.get(
+  "/todos",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    const loggedInUser = request.user.id;
+    const overdueTodoItems = await Todo.overdueTodoItems(loggedInUser);
+    const duetodayTodoItems = await Todo.duetodayTodoItems(loggedInUser);
+    const duelaterTodoItems = await Todo.duelaterTodoItems(loggedInUser);
+    const completedTodoItems = await Todo.markAsCompletedItems(loggedInUser);
+    if (request.accepts("html")) {
+      response.render("todo", {
+        title: "Todo-Manager",
+        overdueTodoItems,
+        duelaterTodoItems,
+        duetodayTodoItems,
+        completedTodoItems,
+        csrfToken: request.csrfToken(),
+      });
+    } else {
+      response.json({ overdueTodoItems, duetodayTodoItems, duelaterTodoItems });
+    }
   }
-});
-
+);
 
 app.get("/signup", (request, response) => {
   response.render("signup", {
     title: "Signup",
-    "csrfToken": request.csrfToken(),
+    "csrfToken": request.csrfToken(), //prettier-ignore
   });
 });
 
+app.get("/login", (request, response) => {
+  response.render("login", {
+    title: "Login",
+    "csrfToken": request.csrfToken(), //prettier-ignore
+  });
+});
 
 app.get("/signout", (request, response) => {
   request.logout((err) => {
@@ -130,13 +128,6 @@ app.get("/signout", (request, response) => {
       return next(err);
     }
     response.redirect("/");
-  });
-});
-
-app.get("/login", (request, response) => {
-  response.render("login", {
-    title: "Login",
-    "csrfToken": request.csrfToken(),
   });
 });
 
@@ -152,6 +143,23 @@ app.post(
   }
 );
 
+app.put(
+  "/todos/:id/markAsCompleted",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    console.log("we have to update a todo with ID:", request.params.id);
+    const todo = await Todo.findByPk(request.params.id);
+    try {
+      const updatedtodo = await todo.setCompletionStatus(
+        request.body.completed
+      );
+      return response.json(updatedtodo);
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
 
 app.post("/users", async (request, response) => {
   const hashedPwd = await bcrypt.hash(request.body.password, saltRounds);
@@ -176,6 +184,17 @@ app.post("/users", async (request, response) => {
 
 app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/todos", async function (_request, response) {
+  console.log("Processing list of all Todos ...");
+  try {
+    const todo = await Todo.getTodo();
+    return response.json(todo);
+  } catch (error) {
+    console.log(error);
+    return response.status(422).json(error);
+  }
+});
+
 app.get("/todos/:id", async function (request, response) {
   try {
     const todo = await Todo.findByPk(request.params.id);
@@ -186,74 +205,55 @@ app.get("/todos/:id", async function (request, response) {
   }
 });
 
-
-app.post("/todos",
-connectEnsureLogin.ensureLoggedIn(),
-async function (request, response)
-{ 
-console.log(request.user);
-  try {
-    const todo = await Todo.addTodo({
-      title: request.body.title,
-      dueDate: request.body.dueDate,
-    });
-    return response.redirect("/todos");
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
+app.post(
+  "/todos",
+  connectEnsureLogin.ensureLoggedIn(),
+  async function (request, response) {
+    console.log(request.user);
+    try {
+      const todo = await Todo.addTodo({
+        title: request.body.title,
+        dueDate: request.body.dueDate,
+        userId: request.user.id,
+      });
+      return response.redirect("/todos");
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
   }
-});
+);
 
-app.get("/todos", async function (_request, response) {
-  console.log("Processing  all Todos ...");
-  try {
-    const todo = await Todo.getTodo();
-    return response.json(todo);
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
+app.delete(
+  "/todos/:id",
+  connectEnsureLogin.ensureLoggedIn(),
+  async function (request, response) {
+    console.log("We have to delete a Todo with ID: ", request.params.id);
+
+    try {
+      await Todo.remove(request.params.id, request.user.id);
+      return response.json(true);
+    } catch (error) {
+      return response.status(422).json(error);
+    }
   }
-});
+);
 
-
-app.delete("/todos/:id",
-connectEnsureLogin.ensureLoggedIn(),
-async function (request, response) {
-  console.log("We have to delete a Todo: ", request.params.id);
-
-  try {
-    await Todo.remove(request.params.id);
-    return response.json(true);
-  } catch (error) {
-    return response.status(422).json(error);
+app.put(
+  "/todos/:id",
+  connectEnsureLogin.ensureLoggedIn(),
+  async function (request, response) {
+    const todo = await Todo.findByPk(request.params.id);
+    try {
+      const updatedTodo = await todo.setCompletionStatus(
+        request.body.completed
+      );
+      return response.json(updatedTodo);
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
   }
-});
-
-app.put("/todos/:id",
-connectEnsureLogin.ensureLoggedIn(),
-async function (request, response) {
-  const todo = await Todo.findByPk(request.params.id);
-  try {
-    const updatedTodo = await todo.setCompletionStatus(request.body.completed);
-    return response.json(updatedTodo);
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
-  }
-});
-
-app.put("/todos/:id/markAsCompleted",
-connectEnsureLogin.ensureLoggedIn(),
-async (request, response) => {
-  console.log("we have to update a todo with ID:", request.params.id);
-  const todo = await Todo.findByPk(request.params.id);
-  try {
-    const updatedtodo = await todo.setCompletionStatus(request.body.completed);
-    return response.json(updatedtodo);
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
-  }
-});
+);
 
 module.exports = app;
